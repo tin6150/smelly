@@ -110,7 +110,7 @@ This version only for zwedc data,  prepping a demo for 2019-0205
 
     /* feature info box in bottom right */
     .map-overlay-features {
-        /* visibility: visible; /* hidden */
+        visibility: visible; /* hidden */
         height: 240px;      /* formerly 100px, now adding much more text */
         margin-top: 10px;
         margin-bottom: 22px;
@@ -129,7 +129,7 @@ This version only for zwedc data,  prepping a demo for 2019-0205
 	
     /* debug info box to display tileset features info - top right - hidden when not in use */
     .map-overlay-features-dbg {
-        /* visibility: hidden; /* visible */
+        visibility: hidden; /* visible */
         position: absolute;
         top: 0;
         margin-top: 40px;    /* so that it appears below the drop down selectors */
@@ -177,7 +177,7 @@ This version only for zwedc data,  prepping a demo for 2019-0205
 
 <!-- had to add an extra css to hold this -->
 <div id="attribution2" class="attributionFloat">
-Smelly.  An app from the collaboration of ETA and Sciencie IT, LBNL.  
+<A HREF="https://github.com/tin6150/smelly">Smelly</A>.  An app from the collaboration of ETA and Sciencie IT, LBNL.  
 © 2019 Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown.
 </div>
 
@@ -598,7 +598,8 @@ map.on('load', function () {
     }
     });
     //map.style.sourceCaches['attribution-layer']._source.attribution = "Smelly. An app from the collaboration of ETA and Sciencie IT, LBNL. © 2019 Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown";
-    map.style.sourceCaches['attribution-layer']._source.attribution = "Smelly";
+    map.style.sourceCaches['attribution-layer']._source.attribution =  '<A HREF="https://github.com/tin6150/smelly">Smelly</A>';
+    // "Smelly";
 
 
 
@@ -732,7 +733,7 @@ map.addControl(new StylesControl([{
 map.addControl(new mapboxgl.AttributionControl({
         //compact: true,  // set to false to add an EXTRA line with info below prefixed.  true add an (i) icon
         compact: true,  // set to false to add an EXTRA line with info below prefixed.  true add an (i) icon
-	customAttribution: '© Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown @ LBNL'
+        customAttribution: '<A HREF="https://github.com/tin6150/smelly"> © Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown @ LBNL</A>'
 }));
 
 

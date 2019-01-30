@@ -1,5 +1,17 @@
+
+|status1|
+
+.. |status1| image:: https://travis-ci.org/tin6150/smelly.svg?branch=master
+    :target: https://travis-ci.org/tin6150/smelly
+
+
 Smelly
 ======
+
+.. figure:: smelly_screenshot.png
+        :align: center
+        :alt: smelly web app screenshot
+
 
 Interactive map displaying odor dispersion from various garbage processing sites across California.
 
@@ -10,5 +22,6 @@ from the collaboration of ETA and Sciencie IT, LBNL.
 Data is preliminary at this point.
 Additional information will soon follow.
 
-
+Application accessible at:
+https://tin6150.github.io/smelly/smelly.html
 

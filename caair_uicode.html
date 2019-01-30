@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html>
+
+
+<!--
+ca air 
+base on ZWEDC_jq_slider.html and ZWEDC_50x50sq_js.html
+
+drop down to pick sites, scale, season, time
+
+This version only for zwedc data,  prepping a demo for 2019-0205
+-->
+<head>
+    <meta charset='utf-8' />
+    <title>Smelly - ETA + Science IT Collaboration</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
+
+    <!--
+    below is for form inputForm
+    adding jquery-ui https://jqueryui.com/slider/
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  
+
+    <style>
+        body { margin:0; padding:0; }   /* map cover whole page, map-containe no special styling, fall under this body style  */
+        /*#map { position:absolute; top:0; bottom:20px; width:100%; } */
+        #map { 
+		position:absolute; 
+		top:0;  
+		margin-top: 20; /* attributionFloat use 20px font */
+		bottom: 0px; 	/* this affect bottom padding where mapbox logo appears.  Actually leave a horizontal white space gap with no map data. */
+		width: 100%;    /* width of map (?) */
+	} 
+
+	/* from https://www.mapbox.com/mapbox-gl-js/example/updating-choropleth/ for population density legend */
+	.legend {
+	    background-color: rgba(255,255,255,0.65);   /* #fff;*/
+	    border-radius: 3px;
+	    bottom: 60px; /* 30px; */  /* use 60px if have scale, 30px w/o scale ruler bar */
+	    box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+	    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+	    padding: 10px;
+	    position: absolute;
+	    /*right: 10px; */
+	    left: 10px;  
+	    /* right: 10px; */    /* can move scale legend to right with this */
+	    z-index: 1;
+	}
+	.legend h4 {
+	    margin: 0 0 3px;
+	}
+	.legend div span {
+	    border-radius: 50%;
+	    display: inline-block;
+	    height: 10px;
+	    margin-right: 5px;
+	    width: 10px;
+	}
+
+	/* trying to format the now customized attribution feature, but don't seems to get it to work  */
+	#attribution-layer {
+       margin-left: 1000px;	
+       background: rgba(30, 30, 30, 0.6);  /* this should be dark to black...  255 255 255 is pure white */
+	}
+	
+	/* top box for attribution -- need more tweaking*/
+	.attributionFloat {
+	  /*transform: rotate(90deg);  */
+	  position: absolute;
+	  top: 0;   /* 0 before rotate */
+	  left: 0;    /* 0 before rotate */
+	  /*right: 3;     /* */
+	  /*background: rgba(250, 250, 250, 0.9);  /* 255 255 255 is pure white */
+      background: rgba(250, 250, 224, 0.9);  /* this is greenish/yellowish */
+	  margin-left: 6px; 
+	  /*overflow: auto;*/
+	  border-radius: 3px;
+	  font: 20px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;  /* 12px, not 12 pt!! they turn out to be very small */
+	  z-index: 4;		/* 1 appear behind copyright link; 5 would cover it. I have another (i) for the link :) */
+	}
+
+
+
+	/* top box for user input -- need more tweaking*/
+	.inputForm {
+	    /*background-color: rgba(250,224,224,0.65);   /* blue greenish? */
+	    /*border-radius: 3px; */
+	    top: 16px; /* space from top of body, so need to add space for name, but that was 20px font... 14 px was enought... *sigh css* */  /* NOT really: thickness of input area */
+	    /*top: 5px; /* 30px; */  
+	    box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+	    padding: 5px; /* this is the height of the drop down */
+	    /*right: 10px; */
+	    /*left: 100px;  /* this leaves a gap to the left where slider start */
+	    /*height: 100%;   /* use this if doing vertically positioned slider bar*/
+	    position: absolute;
+            margin-top: 6px;
+            /*margin-right: 100px;       /* margin-left and width combined to position the slider in center; but mapbox logo is num of pixels :( */
+            /*margin-left: 100px;       /* margin-left and width combined to position the slider in center; but mapbox logo is num of pixels :( */
+	    /*width: 300px;       /* create scroll bar when screen is too narrow... 84% seems ok compromise  */
+            opacity: 0.8;
+	    /* right: 10px; */    /* can move scale legend to right with this */
+	    /*z-index: 5;		/* 1 appear behind copyright link; 5 would cover it. I have another (i) for the link :) */
+	}
+
+    /* feature info box in bottom right */
+    .map-overlay-features {
+        visibility: visible; /* hidden */
+        height: 240px;      /* formerly 100px, now adding much more text */
+        margin-top: 10px;
+        margin-bottom: 22px;
+        width: 320px;      /* formerly 220px, 300px - needed more space cuz longer title now */
+        position: absolute;
+        /*bottom: 10px;  /* 10px add buffer at bottom for (i) attributes info icon */
+        bottom: 0;  /* 0 put box on top, other number put on top.  maybe 30px add buffer at bottom */
+        right:  0;  /* anything other than 0 put box on left */
+        background: rgba(250, 250, 224, 0.8);  /* this is greenish/yellowish */
+        margin-left:  10px; 
+        margin-right: 10px; /* choropleth used 20px */
+        font-family: Arial, sans-serif;
+        overflow: auto;
+        border-radius: 3px;
+    }
+	
+    /* debug info box to display tileset features info - top right - hidden when not in use */
+    .map-overlay-features-dbg {
+        /*visibility: hidden; /* visible */
+        position: absolute;
+        top: 0;
+        margin-top: 40px;    /* so that it appears below the drop down selectors */
+        margin-right: 50px;  /* so that it has room for the zoom control buttons */
+        right: 0;
+        background: rgba(250, 250, 250, 0.4);  /* 255 255 255 is pure white */
+        width: 440px;     height: 500px;      /* good for lots of data */
+        /*width: 300px;     height: 200px;        /* just for map addLayer status */
+        overflow: auto;
+        border-radius: 3px;
+        font: 14px/14px 'Helvetica Neue', Arial, Helvetica, sans-serif;  /* 12px, not 12 pt!! they turn out to be very small */
+        /*font-family: Arial, sans-serif;*/
+    }
+
+	/* feedback debug info box in top right -- was bottom left */
+	.map-overlay-feedback-dbg {
+	  position: absolute;
+	  bottom: 0; right: 0;   /**/
+	  /* bottom: 0; left: 0; /**/
+	  /* top: 0; right: 0;   /**/
+	  background: rgba(250, 250, 250, 0.4);  /* 255 255 255 is pure white */
+	  margin-right: 2px; 
+	  overflow: auto;
+	  border-radius: 3px;
+	  font: 11px/11px 'Helvetica Neue', Arial, Helvetica, sans-serif;  /* 12px, not 12 pt!! they turn out to be very small */
+	  /*font-family: Arial, sans-serif;*/
+	}
+
+
+    </style>
+</head>
+
+<!-- ################################################################# -->
+<!-- ################################################################# -->
+<!-- ####   BODY         ############################################# -->
+<!-- ################################################################# -->
+<!-- ################################################################# -->
+
+<body>
+
+<!-- Tyler had a navbar at top, just trying to be closer to his model, i don't plan to have anything here  -->
+<!-- Hmm this does not appear -->
+<div id='navbar'>
+</div>
+
+<!-- had to add an extra css to hold this -->
+<div id="attribution2" class="attributionFloat">
+Smelly.  An app from the collaboration of ETA and Sciencie IT, LBNL.  
+© 2019 Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown.
+</div>
+
+
+<!-- Tyler had a map-container below the navbar.  the map-container encloses the map div.  just trying to be closer to his model, i so far dont need this extra div container  -->
+<!-- no special css for map-container, so it falls under the body css styling -->
+<div id='map-container'>
+
+<div id='map'></div>
+<!--
+<div id='mapAlt' class='map'></div>
+-->
+
+
+<div id="inputbar" class="inputForm">
+	<!--html element for drop down picker goes here-->
+	<select id="siteSelectorUI"> <!-- site -->  <!--to emulate Tyler <select id="polygon-layer-selector"> -->
+		<option value="NA"         disabled           >Air Basin: Site</option>	       
+		<option value="SfZwedc"    selected="selected">SF: ZWEDC</option>                                       <!-- San Francisco Bay -->
+		<option value="SfSanJose"       >SF: San Jose WPCP</option>	                              <!-- San Francisco Bay -->
+		<option value="SfZbest"         >SF: Z Best Products</option>                             <!-- San Francisco Bay -->
+		<option value="SfDublin"        >SF: Dublin WWTP</option>                                 <!-- San Francisco Bay -->
+		<option value="SfFairfiled"     >SF: Fairfield-Suisan Sewer District</option>             <!-- San Francisco Bay -->
+		<option value="SfSoutheast"     >SF: Southeast Water Pollution Control Plant</option>     <!-- San Francisco Bay -->
+		
+		<option value="SvVacaville_WWTP">SV: Vacaville WWTP</option>    <!-- Sacramento Valley -->
+		<option value="SvRedding"       >SV: Redding WWTP</option>	
+		<option value="SvSacramento"    >SV: Sacramento Regional County Sanitation District</option>	
+		
+		<option value="SjAtwater"      >SJ: Atwater WWTF</option>           <!-- San Joaquin -->
+		<option value="SjBakersfiled"  >SJ: Bakersfield WWTP #2</option>
+		<option value="SjFresno"       >SJ: Fresno-Clovis Regional Water Reclamation</option>	
+		<option value="SjPorterville"  >SJ: Porterville WWTF</option>	
+		
+		<option value="NcArcata"       >NC: Arcata WWTF</option>  <!-- North Coast -->
+		<option value="NcUkia"         >NC: Ukia WWTP</option>
+		<option value="NcHealdsburg"   >NC: Healdsburg WRF</option>
+		
+		<option value="SsCalexico"     >SS: Calexico WPCP</option>    <!-- Salton Sea -->
+		<option value="SsPalm"         >SS: Palm WPCP</option>        <!-- Salton Sea -->
+		
+		<option value="ScLeua"         >SC: LEUA Plant</option>        <!-- South Coast --> 
+		<option value="ScCorona"       >SC: Corona WWTP #1</option>	
+		<option value="ScJoint"        >SC: Joint WPCA</option>	
+		<option value="ScSocwa"        >SC: SOCWA J B Latham TP</option>
+		
+		<option value="McEldorado"     >MC: El Dorado WPP</option>            <!-- Mountain Counties -->
+		
+		<option value="MdLancaster"    >MD: Lancaster WPP</option>            <!-- Mojave Desert -->
+		
+		<option value="CcMonterey"     >CC: Monterey WPCA</option>             <!-- North Central Coast -->
+		
+		<option value="SdSandiego"     >SD: San Diego Metro</option>           <!-- San Diego -->
+		
+		<option value=""    ></option>
+	</select>
+
+	<select id="seasonSelectorUI">
+		<option value="NA"  disabled >Season</option>	       
+		<option value="Spr">Spring</option>
+		<option value="Sum">Summer</option>
+		<option value="Aut">Autumn</option>
+		<option value="Win" selected="selected">Winter</option>
+		<option value="All">All</option>
+	</select>
+	<select id="hourSelectorUI"> <!--mixing depends on time of day-->
+		<option value="NA"  disabled >Hour</option>	       
+		<option value="Al">All hours</option>
+		<option value="Hi">High mixing</option>  <!-- FIXME much data for many sites need to be removed -->
+		<option value="Lo">Low  mixing</option>
+	</select>
+	<select id="sourceSelectorUI">
+		<option value="NA" disabled >Source</option>	       
+		<option value="Co">Compost</option>
+		<option value="Nc">No Compost</option>
+		<option value="Bi">Biofilter</option>
+		<option value="Re">Receiving</option>
+		<option value="Tr">Truck</option>
+		<option value="Aa">All Area Line</option>
+	</select>
+	<select id="scaleSelectorUI">
+		<option value="NA"  disabled >Capacity</option>	       
+		<option value="Act">Actual/Current</option>
+		<option value="10x" selected='selected' >1.0</option>
+		<option value="05x">0.5</option>
+		<option value="15x">1.5</option>
+		<option value="20x">2.0</option>
+	</select>
+
+</div><!-- end for inputbar -->
+
+<!-- legends  from https://www.mapbox.com/mapbox-gl-js/example/updating-choropleth/ -->
+<!--<div id='legend' class='legend' style='display: none;'> -->
+<!-- scale wanted by Ling
+<=0.001, 
+0.001-0.01, 
+0.01-0.1, 
+0.1-1, 
+1-5, 
+5-30, 
+30-100, 
+>=100
+(fewer classes than before.  also need to adjust in 'function styleZwedcPolys' 
+-->
+<div id='legend' class='legend' >
+    Top 2% Odor Exposure (ou/m³)
+    <div><span style='background-color: #f2f3f4'></span>0.0001</div>
+    <div><span style='background-color: #FED976'></span>0.01</div>
+    <div><span style='background-color: #FEB24C'></span>0.1</div>
+    <div><span style='background-color: #FD8D3C'></span>1.0</div>    <!-- was FD8D3C , thought about changing to FF9900, but not enough diff -->
+    <div><span style='background-color: #FC4E2A'></span>5.0</div>
+    <div><span style='background-color: #E31A1C'></span>30</div>
+    <div><span style='background-color: #BD0026'></span>100</div>
+    <div><span style='background-color: #800026'></span>100+</div>
+    <!--<div><span style='background-color: #7c27c2'></span>tba</div>
+        <div><span style='background-color: #5b08a3'></span>&gt;100</div>-->
+</div>
+
+<!-- this create the bottom right info box -->
+<div class='map-overlay-features' id='features'>
+        <h3>Top 2% Odor Exposure (ou/m³):</h3> <!-- this is title of bottom right box -->
+        <div id='pd'><p>(Hover over data point)</p></div>   <!-- static text, replaced later by JS -->
+</div>
+
+<!-- ZWEDC_gson.html still have that debug data box, but at bottom rather than top -->
+<div class='map-overlay-features-dbg' id='featuresDbg' >
+     Temporary debug window - Tileset feature data.
+     <!-- static text, replaced later by JS at map.on('mousemove'...) -->
+</div>
+<div id='feedback' class='map-overlay-feedback-dbg'>
+    <!-- place holder text.  this text can/will be overwritten by jquery handler for the ui form selection -->
+    Map layer loading debug data will appear here.
+</div>
+
+    <!-- Modify the style: right position so it matches with the mapbox attribution -->
+    <!-- https://stackoverflow.com/questions/40382515/how-do-i-add-custom-attribution-to-the-default-mapbox-gl-attribution-control -->
+    <!-- didnt do what i wanted, so disabling. -tin
+    <div id="attribution" class="mapboxgl-ctrl mapboxgl-ctrl-attrib mapboxgl-ctrl-bottom-right" style="position: fixed; bottom: 0; right: 230px;">
+        <a href="*">Attribution 1</a> &nbsp;|&nbsp; 
+        <a href="*">Attribution 2</a>  &nbsp;|&nbsp;
+        <a href="*">Attribution n</a> &nbsp;|
+    </div>
+    -->
+
+</div> <!-- end div for map-container -->
+
+
+<!-- ########################################################### -->
+<!-- ########################################################### -->
+<!-- ###### JavaScript below     ############################### -->
+<!-- ########################################################### -->
+<!-- ########################################################### -->
+
+<!-- no use
+<script>
+$( function() {
+    $( "inputPicker" ).select( function() {
+        alert( "select triggered" );
+    });
+    //var uiSelection = $("inputPicker").$("site").val();
+    document.getElementById('feedback').innerHTML = "sn5050\n" //+ uiSelection;
+});
+</script>
+-->
+
+
+<script>
+mapboxgl.accessToken =   'pk.eyJ1Ijoic241MCIsImEiOiJjam8weWl0dm0wNWVhM3dubmgyb3hwaTZsIn0.2Cvl-nnhZAoavESou_RqiQ'; // Sn  (post?) 2018-12-07   pk = public token
+var currentLoadedMapLayer  = "";
+var currentLoadedMapSource = "";
+var prevSite = "";
+var currentSite = "";
+var mapboxUser = "sn50";
+// below are mostly for debuging use
+var getInputSelectorCounter = 0;
+var addLayerCounter = 0;
+var addSourceCounter = 0;
+var rmLayerCounter = 0;
+var rmSourceCounter = 0;
+
+// these aren't global, just DOM-wide object vars :)
+// store parallel hash of lon/lat of sites.   eg lon['sfzwedc'], lat['sfzwedc'] for use with flyTo()/panTo
+// http://www.mojavelinux.com/articles/javascript_hashes.html 
+var lon = {};
+var lat = {}; 
+
+// note there is a map.remove() ... 
+var map = new mapboxgl.Map({
+    container: 'map',	// container id
+    //style: 'mapbox://styles/mapbox/light-v9',
+    //style: 'mapbox://styles/mapbox/dark-v9',		// alt basemap style
+    //style: 'mapbox://styles/sn50/cjq8j89hqavyu2sqs3kctxqjj', 	// cali terrain, probably just the base layer map from mapbox.  used in early caair_zwedc
+    //style: 'mapbox://styles/sn50/cjrd1zmyy1kds2tp6k4az7apr',    // sites_info_polyg  with satellite street as base layer, too many colors, don't show data well.
+    // #### wtf? mapboxstyles change here!
+    //style: 'mapbox://styles/sn50/cjreie0fs4o0m2sqghg3ukiqn', 	// sites_info_pt_ctr with cali terrain     as base layer .  pt in center is pretty small, no need for TopLeft position.
+    style: 'mapbox://styles/sn50/cjrekq65d4o7o2slw5x262rb0',	// sites_info_polyg  + sites_info_pt_topLeft  with cali terrain.  corner point turns out to be bottom left, but whatever. 
+    
+   
+    // https://docs.mapbox.com/mapbox-gl-js/api/#attributioncontrol, but see the top part on options.attributionControl 
+    // these are all options for the map object 
+    attributionControl: false,                  // setting to false remove the fine print at bottom.  I still have an info circle that pop up, should be good enough
+    hash: true,     // change URL with a hash of map zoom/lat/long    eg append: #15/37.434/-121.945   # notice it is lat/long in this url!!
+
+    //zoom: 13,
+    //center: [-122.447303, 37.753574]   SF
+    center: [-121.945, 37.434],  // alviso ZWEDC
+    //center: [-121.5240213, 36.9481043],  // Gilroy Z Best Products
+    //center: [-121.985287624997,37.4077223978109],  // data point from TMP test, in santa clara!
+    //zoom: 19          // odor data tileset is said to be z0-z19, 19+ will "appear simplified"
+    //zoom: 16    	// see building shape, needed cuz 50m x 50m (or 25m?)
+    zoom: 15    	// see buildings, needed cuz 50m x 50m (or 25m?)
+    //zoom: 14.2  	// zoomed in and good for zwedc demo with many low value data points // 1000 ft
+    //zoom: 13.5  	// zoomed in
+    //zoom: 12		// see whole coverate area of ZWEDC
+    //zoom: 10          // circle filled point data is said to be z0-z10, 10+ will "appear simplified"  // ## TMP
+    //zoom: 9		// see most of BAAQMD   // 5mi 
+    //zoom: 8		// site-info as polygon said to be good at z0-z8.  8+ will "appear simplified"
+    //zoom: 6  		// see most of CA  	// 50mi    ## smelly overview map ## FIXME come back to this after debug
+    //zoom: 5.5		// see whole CA
+    
+});
+
+
+// these should not be needed anymore, cuz took out pop data county vs state zoom changes
+// begin zoom control for state/county choropleth
+//var zoomThreshold = 4;  // flip beween state vs county density
+//var zoomThresholdAQI = 6;  // flip between county population density vs air quality  (for scale, maybe opacity)
+// oh really dont want to be dealing with population density at this point.
+
+// end of state/county choropleth
+
+//-color gradient from choropleth tutorial  https://www.mapbox.com/help/choropleth-studio-gl-pt-2/
+//-var layers = ['0-10', '10-20', '20-50', '50-100', '100-200', '200-500', '500-1000', '1000+'];
+//-var colors = ['#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
+// don't think these below are used anymore
+//var zwedc_layers = ['0-0.01', '0.01-0.1', '0.1-1.0', '1.0-3.0', '3.0-5.0', '5.0-8.0', '8.0-10', '10-15',    '15+'];	// Tyler legend needed by markers
+//var zwedc_colors = ['#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026', '#000000']; // Tyler legend needed by markers 
+
+
+// modeleed after styleCountyPolys(poly_data_field) 
+function styleZwedcPolys(attribute) {
+    return [
+      'interpolate',
+      ['linear'],
+      ['get', attribute],
+
+		// Tyler's framework used 10 entries here ; changed to Ling's scale 
+                0.0, '#f2f3f4', // Anti-flash white, so it blend into bg // '#FFEDA0',  // '#F2F12D',  <--last one is from county choropleth
+                0.01, '#FED976',         // '#EED322',
+                0.1, '#FEB24C',         // '#E6B71E',
+                1.0, '#FD8D3C',         // '#DA9C20',
+                5.0, '#FC4E2A',         // '#CA8323',
+                30 , '#E31A1C',         // '#B86B25',
+                100, '#BD0026',         // '#A25626',
+              10000, '#800026'          // #8B4225',
+           //    20,  '#7c27c2', // light purple  // few ZWEDC values this high
+           //    25,  '#5b08a3'  // dark  purple  // '#723122'
+    ]
+};
+
+// the attribute, 'max', don't do anything here
+function styleZwedcOpacity(attribute) {
+    return [
+      'interpolate',
+      ['linear'],
+      ['get', attribute],
+		// Tyler's framework used 10 entries here 
+                0.0, 0.05,              // graded opacity increases as value increases.  look pretty, but may be hiding data from view ##
+               0.01, 0.15,
+                1.0, 0.25,
+                5.0, 0.40,
+                 30, 0.55,
+                100, 0.70,
+               1000, 0.85,
+             100000, 0.95
+    ]
+};
+
+// this not used anymore, but kept for ref till color scale/opacity verified to work
+function styleZwedcOpacity_old10Gradient(attribute) {
+    return [
+      'interpolate',
+      ['linear'],
+      ['get', attribute],
+		// Tyler's framework used 10 entries here 
+               0.0, 0.05,              // graded opacity increases as value increases.  look pretty, but may be hiding data from view ##
+                0.5, 0.15,
+                0.7, 0.25,
+                1.0, 0.35,
+                2.5, 0.45,
+                5.0, 0.50,
+                7.5, 0.55,
+                10,  0.65,
+                20,  0.70,
+                25,  0.75
+    ]
+};
+
+// find out what combination is selected in the form selections UI ... eventually trigger loading maplayer...   ##FIXME
+// do a map.new each time this is triggered?  
+// better to store current layer, then addLayer, removeLayer....
+function getInputFormSelection() {
+        getInputSelectorCounter++;
+        inputFormSelection =  document.getElementById("siteSelectorUI").value;
+        inputFormSelection += document.getElementById("seasonSelectorUI").value;;
+        inputFormSelection += document.getElementById("hourSelectorUI").value;;
+        inputFormSelection += document.getElementById("sourceSelectorUI").value;;
+        inputFormSelection += document.getElementById("scaleSelectorUI").value;;
+        feedback.innerHTML = inputFormSelection;					
+        if( currentLoadedMapLayer != "" ) {
+            // https://docs.mapbox.com/mapbox.js/example/v1.0.0/layers/
+            //if (map.hasLayer('caair')) {     // err not a fn.  so can't call map.fn here? 
+            //    map.removeLayer('caair');
+            //    this.className = '';
+            //} 
+            rmLayerCounter++;
+            map.removeLayer(  currentLoadedMapLayer );
+            //map.removeLayer('caair');
+            rmSourceCounter++;
+            map.removeSource( currentLoadedMapSource );
+            this.className = '';                                //not sure what this does, got it from some web eg.
+            feedback.innerHTML = "removeLayer executed";
+        }
+         
+        // maybe split out the mapLayer code to be called separately??   FIXME ## 
+        
+        currentLoadedMapLayer  = inputFormSelection;       // this is essentially global var
+        currentLoadedMapSource = inputFormSelection;       // this is essentially global var
+        addLayerCounter++;
+        addSourceCounter++;
+        addStatus = map.addLayer({
+            id: currentLoadedMapLayer,
+            //id: 'caair',
+            type: 'fill',
+            layout: {
+                //visibility: zwedcPolyVis
+                visibility: 'visible'
+                //visibility: 'none'		// can use this to make ZWEDC data disapear ##
+            },     
+            // sn50.SfZwedcAllHiBi10x need to be in url and source-layer, w/ username in url, NO username in source-layer.  be careful!!
+            source: {
+                type: 'vector',
+                //url: 'mapbox://sn50.aae3dmkj'   // ZWEDC 25x25 sq first test data set (at 10x?)
+                //url:   'mapbox://sn50.SfZwedcSprHiBi10x' 	                // 2nd csv2gson upload    ... next, try to make way to toggle between them.   hmm. ready to upload em all!
+                url:   'mapbox://' + mapboxUser + "." + inputFormSelection
+            },
+            //'source-layer': 'ZWEDC_50x50m-29q7xv',	// retrieved from mapbox web site Tile management...  [1st dummy test data]
+            //'source-layer': 'SfZwedcSprHiBi10x',	// no username prefix here!! duh!!
+            'source-layer': inputFormSelection,	    //  grab source layer name from parsed input form 
+            paint: {
+                    'fill-antialias': false,    // remove gridline
+                    //'fill-color': 'rgba(61,153,80,0.55)',                    // https://www.mapbox.com/help/how-web-apps-work/#use-mapbox-gl-js-with-react ##
+                    // see git log 1dff205 for older version that had 'table' and in-place code here for fill-color and fill-opacity
+                    'fill-color': styleZwedcPolys('max'),
+                    //'fill-opacity': polyLayerOpacity,
+                    //'fill-opacity': 0.2
+                    'fill-opacity': styleZwedcOpacity('max') // max attribute just a place holder
+            }
+        });  // end map.addLayer(...) for zwedc/caair        
+        document.getElementById('featuresDbg').innerHTML = "map.addLayer status:"  + addStatus + "--EndStatus--";  // dont give any info, always just 'Object object'
+        feedback.innerHTML = inputFormSelection; // + " - layerAdded";
+        this.className = 'active';   // from mapbox layer eg... not sure what it does :(
+        currentLoadedMapSource = inputFormSelection;       // this is essentially global var
+        currentSite = document.getElementById("siteSelectorUI").value;
+        // after addLayer, can then panto()
+        if( prevSite != currentSite )  {   
+            //-var pan2loc = {lon: -121.98, lat: 37.66};  // Dublin
+            //-map.panTo(pan2loc);   // need more param that i am not sure how to create yet  ... hmmm it is panTo(), though still take 3 params.
+            //+ tmp disabled flyTo till get all site lonlat loaded somehow
+            //+map.flyTo({center: [-121.98, 37.66]});   // https://docs.mapbox.com/mapbox-gl-js/api/#map#flyto   // this works
+            prevSite = currentSite;
+        }
+        
+        
+        //--    $( "inputPicker" ).select( function() { alert( "select triggered" ); });
+}; //end fn getInputFormSelection 
+
+
+map.on('load', function () {
+    getInputFormSelection();
+    map.addLayer({
+        "id": "terrain-data",
+        "type": "line",
+        "source": {
+            type: 'vector',
+            url: 'mapbox://mapbox.mapbox-terrain-v2'
+        },
+        "source-layer": "contour",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": "#263aad", // blue  "#ff69b4", // red
+            "line-opacity": 0.6,
+            "line-width": 1
+        }
+    });  // end map.addLayer(...)
+
+    //------------- site_info point LAYER ------------ 
+    // if need more rendering feature than what Mapbox studio styling does, 
+    // manually add the layer here
+    // but so far i think i can get what i need as is, so not doing this (yet)
+
+    
+    //------------- tried to change attribution, but not too sucessful  ------------ 
+    //   below isn't all that important.
+    map.addLayer({
+    "id": "attribution-layer",
+    "type": "circle",
+    "source": {
+        "type": "geojson",
+        "data": {
+            "type": "Feature",
+            "properties": {},
+            "geometry": null
+        }
+    }
+    });
+    //map.style.sourceCaches['attribution-layer']._source.attribution = "Smelly. An app from the collaboration of ETA and Sciencie IT, LBNL. © 2019 Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown";
+    map.style.sourceCaches['attribution-layer']._source.attribution = "Smelly";
+
+
+
+    //------------- ZWEDC "point polygon" LAYER ------------ // ##  need more work here ##
+    // ^^ moved to getInputFormSelection 
+
+
+    // ################################################ //
+    // #### add handler for form selector
+    var inputFormSelection = "";
+    //-- Tyler's code has definition at this level
+    var poly_selector = document.getElementById("siteSelectorUI");  //##  Tin UI
+    poly_selector.addEventListener('change', function(e) {
+        //var testTin = "test123";
+        getInputFormSelection();
+    });
+    var seasonSelector = document.getElementById("seasonSelectorUI");  
+    seasonSelector.addEventListener('change', function(e) {
+        getInputFormSelection();
+    });
+    var hourSelector = document.getElementById("hourSelectorUI");  
+    hourSelector.addEventListener('change', function(e) {
+        getInputFormSelection();                                            // FIXME these are the one throwing error about layer  // should be fine now.
+    });
+    var sourceSelector = document.getElementById("sourceSelectorUI");  
+    sourceSelector.addEventListener('change', function(e) {
+        getInputFormSelection();
+    });
+    var scaleSelector = document.getElementById("scaleSelectorUI");  
+    scaleSelector.addEventListener('change', function(e) {
+        getInputFormSelection();
+    });
+ 
+ 
+});  // end map.on('load'...) 
+
+
+
+// mousemove should not  need to be inside map.on('load')
+// it updated featuresDbg correctly.
+// may want to see non geocoded pop up : 
+// * https://www.mapbox.com/mapbox-gl-js/api/#popup
+// * https://www.mapbox.com/mapbox-gl-js/example/popup-on-hover/
+map.on('mousemove', function (e) {
+      var text2display = "";
+
+      var features = map.queryRenderedFeatures(e.point, { layers: 
+	      [currentLoadedMapLayer] 
+	      //['caair'] 
+      });
+      if (features.length > 0) {
+           ouVal = features[0].properties.max   ;
+           if( ouVal < 0.01 ) {
+                ouValString = ouVal.toExponential(1) ;
+           } else {
+                ouValString = ouVal.toPrecision(2);
+           }
+           text2display =  
+		      "<H3>Top 2% Odor Exposure (ou/m³)</H3>\n" + 
+		      "" + features[0].properties.max.toPrecision(3) 	+ "<BR>\n"  
+		      //"" + features[0].properties.max.toExponential(1) 	+ "<BR>\n"  
+		      //"" + ouValString 	+ "<BR>\n"  
+      } else {
+            text2display = "<H3>Top 2% Odor Exposure (ou/m³)</H3>\n" + "- <BR>\n" 
+            //UiSelection = $("site").val();
+            //+ "UI: " + UiSelection ;
+      }
+
+      // this next one not limited to any layer -- ie query all layers
+      // and provide debug info for all fetures
+      //var featuresSiteInfo = map.queryRenderedFeatures(e.point);
+      //var featuresSiteInfo = map.queryRenderedFeatures(e.point, { layers: ['sites-info-pt-ctr'] });      
+      var featuresSiteInfo = map.queryRenderedFeatures(e.point, { layers: ['sites-info-polyg'] });                     // may need to restrict to layer after all so that pick feature [0] rather than find it.  
+      document.getElementById('featuresDbg').innerHTML = "DBG:" + JSON.stringify(featuresSiteInfo, null, 2);      // this display  in top right  featuresDbg box  inside map-overlay-features-dbg ##
+      // rest actually want to add to existing bottom right map-overlay-features box
+      if (featuresSiteInfo.length > 0) {
+            text2display += "<BR>\n" 
+		      + "Site: "        + featuresSiteInfo[0].properties.site_name    + "<BR>\n"  
+		      + "Facility: "    + featuresSiteInfo[0].properties.facility     + "<BR>\n"  
+		      + "Air Basin: "   + featuresSiteInfo[0].properties.airbasin     + "<BR>\n"  
+		      + "City: "        + featuresSiteInfo[0].properties.city         + "<BR>\n"  
+		      + "County: "      + featuresSiteInfo[0].properties.county       + "<BR>\n"  
+		      + "Pop Density: " + featuresSiteInfo[0].properties.pop_density.toPrecision(3)  + "<BR>\n"  
+		      //+ "Pop Density: " + featuresSiteInfo[0].properties.pop_density  + "<BR>\n"  
+		      + "Terrain: "     + featuresSiteInfo[0].properties.terrain      + "<BR>\n"  
+      } 
+
+
+      //text2display += " --TheEnd";
+      document.getElementById('features').innerHTML = text2display;
+      //## tinWasHere
+
+});
+
+// https://www.mapbox.com/mapbox-gl-js/api/#navigationcontrol
+//var nav = new mapboxgl.NavigationControl();
+//map.addControl(nav, 'top-left');
+map.addControl( new mapboxgl.NavigationControl(), 'top-right');  
+
+map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
+
+// trying to add Ruler or change style...
+// https://bravecow.github.io/mapbox-gl-controls/
+// don't know if there is any released under 
+// https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-controls ...
+// import { RulerControl } from 'mapbox-gl-controls;
+// const mapboxglctrl = require('mapbox-gl-controls');   // js not understanding import or require.  need help!!
+// map.addControl(new RulerControl(), 'top-right');
+
+
+// trying to add style control // NOT defined, need to npm install ... 
+//map.addControl(new StylesControl(), 'top-left');
+/*
+map.addControl(new StylesControl([{
+  name: 'Streets',
+  url: 'mapbox://styles/mapbox/streets-v9'
+}, {
+  name: 'Satellite',
+  url: 'mapbox://styles/mapbox/satellite-v9'
+}, {
+  name: 'Dark',
+  url: 'mapbox://styles/mapbox/dark-v9'
+}]), 'top-left');
+*/
+// Use style.load event to redraw layers when style has changed:
+//map.on('style.load', () => { /* redraw layers */ });
+
+
+// https://www.mapbox.com/mapbox-gl-js/api/#attributioncontrol
+//map.addControl(new mapboxgl.AttributionControl({
+map.addControl(new mapboxgl.AttributionControl({
+        //compact: true,  // set to false to add an EXTRA line with info below prefixed.  true add an (i) icon
+        compact: true,  // set to false to add an EXTRA line with info below prefixed.  true add an (i) icon
+	customAttribution: '© Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown @ LBNL'
+}));
+
+
+// https://www.mapbox.com/mapbox-gl-js/api/#scalecontrol  // added to bottom, clobbering legend.
+var scale = new mapboxgl.ScaleControl({
+    //maxWidth: 80,
+    unit: 'imperial'
+});
+map.addControl(scale);
+//scale.setUnit('metric');
+
+// https://www.mapbox.com/mapbox-gl-js/api/#keyboardhandler#enable  but don't seems to do anything in chrome :(
+map.keyboard.enable();
+
+
+
+// sync move, but `require` not understood by chrome engine (??)
+// https://github.com/mapbox/mapbox-gl-sync-move
+// var syncMove = require('mapbox-gl-sync-move');
+
+// also see https://beta.observablehq.com/@siggyf/compare-two-maps-example
+
+
+// ## where is main ??
+// everything in script is looped over and over...
+// so after all fn declaration, will run code here?
+
+console.log( 'the "main" of script' );
+
+
+// remove indent once verify code in here is good. ##
+    //++ add code to populate lon['site'] lat[] 
+    //##
+    //var featuresSiteInfo = map.queryRenderedFeatures(e.point, { layers: ['sites-info-pt-ctr'] });               // restrict to layer to easier pick feature...
+    // https://docs.mapbox.com/mapbox-gl-js/api/#map#querysourcefeatures
+    //var featuresSiteInfo = this.isSourceLoaded('sites-info-pt-ctr');
+    //-featuresSiteInfo = {} ; // tmp
+    //-console.log( featuresSiteInfo );
+    
+    var dbgGetLayer = map.getLayer('sites-info-pt-ctr'); 
+    console.log( "dbgGetLayer:" );
+    console.log( dbgGetLayer );         // this is undef in here, but debugger get the right layer.  so not able to get info from style here... may have to addLayer on this manually in this JS to get it.
+     
+    var featureSiteInfo = map.querySourceFeatures('sites-info-pt-ctr');   // this is getting blank :(          ##
+    featureSiteInfo_json = JSON.stringify(featureSiteInfo);
+    console.log( "featureSiteInfo json: " + featureSiteInfo_json);
+    console.log( "featureSiteInfo json: end");
+    
+    sitesCount = featureSiteInfo.length;
+    sitesCount = 0; //tmp FIXME
+    console.log( "sitesCount is: " + sitesCount);
+    for (i=0; i<=sitesCount; i++) {
+        console.log( "siteCount at: " + i )
+        lon_tba = featureSiteInfo[i].properties.site_name ;
+		  //--     "" + features[0].properties.max.toExponential(1) 	+ "<BR>\n"  
+        console.log( lon_tba );
+    }
+ 
+</script>
+
+</body>
+</html>

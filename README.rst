@@ -13,7 +13,7 @@ Smelly
         :alt: smelly web app screenshot
 
 
-Interactive map displaying odor dispersion from various garbage processing sites across California.
+Interactive map displaying odor dispersion from various refuse processing sites across California.
 
 This is a web-based application 
 from the collaboration of ETA and Sciencie IT, LBNL.

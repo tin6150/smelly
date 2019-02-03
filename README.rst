@@ -8,7 +8,7 @@
 Smelly
 ======
 
-.. figure:: smelly_screenshot.png
+.. figure:: smelly_screenshot.jpg
         :align: center
         :alt: smelly web app screenshot
 
@@ -21,6 +21,7 @@ from the collaboration of ETA and Sciencie IT, LBNL.
 
 Data is preliminary at this point.
 Additional information will soon follow.
+Contact: tin (at) lbl.gov
 
 Application accessible at:
 https://tin6150.github.io/smelly/smelly.html

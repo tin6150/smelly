@@ -20,6 +20,17 @@ flyTo() works.
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
 
+    <!-- Global site tag (gtag.js) - Google Analytics tin@lbl - to track user interest and future development effort -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-134625383-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-134625383-1');
+    </script>
+
+
     <!--
     below is for form inputForm
     adding jquery-ui https://jqueryui.com/slider/
@@ -870,7 +881,7 @@ map.on('mousemove', function (e) {
 		      + "City: "        + featuresSiteInfo[0].properties.city         + "<BR>\n"  
 		      + "County: "      + featuresSiteInfo[0].properties.county       + "<BR>\n"  
 		      //~ +"Pop Density: " + featuresSiteInfo[0].properties.pop_density.toPrecision(3)  + "<BR>\n"  
-		      + "Pop Density: " + popDen2display + "<BR>\n"  
+		      + "Pop Density: " + popDen2display + " person/mile²<BR>\n"  
 		      + "Terrain: "     + featuresSiteInfo[0].properties.terrain      + "<BR>\n"  
       } 
 

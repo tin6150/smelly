@@ -15,7 +15,7 @@ flyTo() works.
 -->
 <head>
     <meta charset='utf-8' />
-    <title>Smelly - ETA + Science IT Collaboration</title>
+    <title>Smelly - ETA + Science IT Collaboration (t6@0316)</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
@@ -29,6 +29,8 @@ flyTo() works.
 
       gtag('config', 'UA-134625383-2');
     </script>
+		<!--
+		-->
 
 
     <!--
@@ -39,9 +41,11 @@ flyTo() works.
 		<!-- if need jquery, use newer version -->
     <!--
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https:// xxx code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https:// xxx code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https:// x code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https:// x code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     --> 
+	<!-- see jQuery versions at https://code.jquery.com/jquery/ -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
     <style>
         body { margin:0; padding:0; }   /* map cover whole page, map-containe no special styling, fall under this body style  */
@@ -79,14 +83,18 @@ flyTo() works.
 	    margin-right: 5px;
 	    width: 10px;
 	}
-
+	
+	/* this one is used in div for calculator result so units appear next to number, instead of new line */
+	.noNewLine {
+		display:inline;
+	}
 	/* trying to format the now customized attribution feature, but don't seems to get it to work  */
 	#attribution-layer {
        	    margin-left: 1000px;	
             background: rgba(30, 30, 30, 0.6);  /* this should be dark to black...  255 255 255 is pure white */
 	}
 	
-	/* top box for attribution -- need more tweaking*/
+	/* top box for attribution -- maybe not used anymore? */
 	.attributionCss {
 	  /*transform: rotate(90deg);  */
 	  position: absolute;
@@ -101,6 +109,30 @@ flyTo() works.
 	  border-radius: 3px;
 	  font: 20px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;  /* 12px, not 12 pt!! they turn out to be very small */
 	  z-index: 2;		/* 1 appear behind copyright link; 5 would cover it. I have another (i) for the link :) */
+	}
+
+	.calc_Css {
+	  /*visibility: hidden;*/
+	  display: none;
+	  position: absolute; 
+	  /* position: relative; */
+	  max-width: 400px;
+	  top:  10%; 
+	  left: 0; 
+	  /*right: 3;     /* */
+	  margin-left:  12px;  /* 10px match all other overlay boxes, give a few pixel to click "hide calculator" in small screen */
+	  /*margin-right: 1px; */
+	  padding-left:   20pt;    /* this give some space around the results table */
+	  padding-right:  20pt; 
+	  padding-bottom: 20pt; 
+	  /*overflow: auto;*/
+	  z-index: 5;		/* 1 appear behind copyright link; 5 would cover it. I have another (i) for the link :) */
+	  border-radius: 3px;
+	  /*background: rgba(250, 250, 250, 0.9);  /* 255 255 255 is pure white */
+      /*background-color: rgba(250, 250, 224, 0.6);  /* this is greenish/yellowish */
+      background-color: rgba(30, 250, 30, 0.8);  /* this is lime green */
+      /*background: rgba(250, 250, 224, 0.8);  /* this is greenish/yellowish */
+	  font: 12pt/12pt 'Helvetica Neue', Arial, Helvetica, sans-serif;  /* 12pt here, not px  */
 	}
 
 
@@ -226,13 +258,20 @@ flyTo() works.
     <div id='mapAlt' class='map'></div>
     -->
 
+
     <div id="attribution2+inputbar" class="attrib2_input_Css">
         <!-- had to add an extra css to hold this -->
-	<div id="attribution2"> <!-- class="attributionCss"> -->
-            <A HREF="https://github.com/lbl-eta/smelly">Smelly</A>.  An app from the collaboration of ETA and Science IT, LBNL.  
+		<div id="attribution2"> <!-- class="attributionCss"> -->
+            <A HREF="https://github.com/lbnl-scienceit/smelly">Smelly</A>.  An app from the collaboration of ETA and Science IT, LBNL.  
             © 2019 Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown.
-        </div>
+		</div>
+
+
+
 	<div id="inputbar"><!-- class="inputCss"> -->
+		<!--    FIXME calculator disabled till complete development
+			<BUTTON id="ShowCalculator">Show Calculator</BUTTON>
+	-->
             <!--html element for drop down picker goes here-->
             <select id="siteSelectorUI"> <!-- site -->  <!--to emulate Tyler <select id="polygon-layer-selector"> -->
                 <option value="NA"         disabled           >Air Basin: Site</option>	       
@@ -259,12 +298,12 @@ flyTo() works.
                 <option value="SsCalexico"     >SS: Calexico WPCP</option>    <!-- Salton Sea -->
                 <option value="SsPalm"         >SS: Palm WPCP</option>        <!-- Salton Sea -->
                 
-                <option value="ScLeua"         >SC: LEUA Plant</option>        <!-- South Coast ## FIXME site description says ieua, not L. (which one is it really??) --> 
+                <option value="ScIeua"         >SC: IEUA Plant</option>        <!-- South Coast "I" (eye)  --> 
                 <option value="ScCorona"       >SC: Corona WWTP #1</option>	
                 <option value="ScJoint"        >SC: Joint WPCA</option>	
                 <option value="ScSocwa"        >SC: SOCWA J B Latham TP</option>
                 
-                <option value="McEidorado"     >MC: El Dorado WPP</option>            <!-- Mountain Counties ## FIXME El and not Ei as used in the filename -->
+                <option value="McEldorado"     >MC: El Dorado WPP</option>            <!-- Mountain Counties  Fixed (not Ei)-->
                 
                 <option value="MdLancaster"    >MD: Lancaster WPP</option>            <!-- Mojave Desert -->
                 
@@ -284,7 +323,7 @@ flyTo() works.
             <select id="hourSelectorUI"> <!--mixing depends on time of day-->
                 <option value="NA"  disabled >Hour</option>	       
                 <option value="Al">All hours</option>
-                <option value="Hi">High mixing</option>  <!-- FIXME much data for many sites need to be removed -->
+                <option value="Hi">High mixing</option>  <!-- FIXME much data for many sites need to be removed.  3/15 got new data should have overwritten them -->
                 <option value="Lo">Low  mixing</option>
             </select>
             <select id="sourceSelectorUI">
@@ -307,6 +346,153 @@ flyTo() works.
 
         </div><!-- end for inputbar -->
     </div><!-- end for "attribution2+inputbar"-->
+    <BR>
+    <BR>
+    <BR>
+    <BR>
+
+	<!-- calculator.  position: relative, so above BR will govern where it pop up -->
+	<!-- https://photos.app.goo.gl/iANhYY6xAcnW96hp8 -->
+
+	<div id="distanceCalc" class="calc_Css">
+		<center>
+		<h3>Odor Dispersion Distance Calculator <BR>
+		</h3>
+		<BR>
+		<BR>
+		<TABLE>
+			<TR>
+				<TD>Enter emission rate </TD>
+				<TD><input type="text" name="distanceCalculatorInput" id="distanceCalculatorInput" size="6" value="5.0"> </TD>
+				<TD>ou/s</TD>
+			</TR>
+		</TABLE>
+		<TABLE>
+			<TR>
+				<TD></TD>
+				<TD><BUTTON id="CalculateButton4distCalc">Calculate</BUTTON></TD>
+				<TD></TD>
+			<TR>
+		</TABLE>
+		<h3>
+			Separation Distance for <EM><DIV ID="siteLocation4distCalc">SiteLocation</DIV></EM>
+		</h3>
+		<BR>
+		<TABLE border="1">
+			<TR>
+				<TD></TD>
+				<TD>Low Mixing <BR> 7-8am; 6-9pm</TD>
+				<TD>High Mixing<BR> 9am-5pm</TD>
+				<TD>Ext Mixing <BR> 7am-9pm</TD>
+			</TR>
+			<TR>
+				<TD>Spring</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_lowMixing_spring">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_highMixing_spring">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_extMixing_spring">Result</DIV> m</TD>
+			</TR>
+			<TR>
+				<TD>Summer</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_lowMixing_summer">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_highMixing_summer">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_extMixing_summer">Result</DIV> m</TD>
+			</TR>
+			<TR>
+				<TD>Autum</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_lowMixing_autum">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_highMixing_autum">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_extMixing_autum">Result</DIV> m</TD>
+			</TR>
+			<TR>
+				<TD>Winter</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_lowMixing_winter">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_highMixing_winter">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_extMixing_winter">Result</DIV> m</TD>
+			</TR>
+			<TR>
+				<TD>All Seasons</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_lowMixing_allSeasons">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_highMixing_allSeasons">Result</DIV> m</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_extMixing_allSeasons">Result</DIV> m</TD>
+			</TR>
+		</TABLE>
+		<BR><BR>
+		<TABLE>
+			<TR>
+				<TD></TD>
+				<TD><BUTTON id="ShowRateCalculatorButton">Change to Rate Calculator</BUTTON></TD>
+				<TD></TD>
+			</TR>
+		</TABLE>
+		</center>
+	</div>   <!-- end div for calculator -->
+
+	<!-- being div for RATE calculator -->
+	<div id="rateCalc" class="calc_Css">
+		<center>
+		<h3>Allowable Odor Rate for stated distance<BR>
+		</h3>
+		<BR>
+		<BR>
+		<TABLE>
+			<TR>
+				<TD>Enter desired separation distance </TD>
+				<TD><input type="text" name="rateCalculatorInput" id="rateCalculatorInput" size="6" value="1000"> </TD>
+				<TD> m</TD>
+			</TR>
+		</TABLE>
+		<TABLE>
+			<TR>
+				<TD></TD>
+				<TD><BUTTON id="CalculateButton4rateCalc">Calculate</BUTTON></TD>  <!-- cannot be overloaded, duplicate id find fird first match and stops -->
+				<TD></TD>
+			<TR>
+		</TABLE>
+		<h3>
+			Allowed Max Emission Rate for <EM><DIV ID="siteLocation4rateCalc">SiteLocation</DIV></EM>
+		</h3>
+		<BR>
+		<TABLE border="1">
+			<TR>
+				<TD></TD>
+				<TD></TD>
+				<TD></TD>
+			</TR>
+			<TR>
+				<TD>Spring</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_distance2rate_spring">Result</DIV> ou/s</TD>
+			</TR>
+			<TR>
+				<TD>Summer</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_distance2rate_summer">Result</DIV> ou/s</TD>
+			</TR>
+
+			<TR>
+				<TD>Autum</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_distance2rate_autum">Result</DIV> ou/s</TD>
+			</TR>
+
+			<TR>
+				<TD>Winter</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_distance2rate_winter">Result</DIV> ou/s</TD>
+			</TR>
+
+			<TR>
+				<TD>All Seasons</TD>
+				<TD><DIV CLASS="noNewLine" ID="calc_result_distance2rate_allSeasons">Result</DIV> ou/s</TD>
+			</TR>
+		</TABLE>
+		<BR><BR>
+		<TABLE>
+			<TR>
+				<TD></TD>
+				<TD><BUTTON id="ShowDistanceCalculatorButton">Switch to Distance Calculator</BUTTON></TD>
+				<TD></TD>
+			</TR>
+		</TABLE>
+		<BR><BR>
+		</center>
+	</div>   <!-- end div for RATE calculator -->
 
     <!-- legends  from https://www.mapbox.com/mapbox-gl-js/example/updating-choropleth/ -->
     <!--<div id='legend' class='legend' style='display: none;'> -->
@@ -387,6 +573,96 @@ $( function() {
 
 
 <script>
+
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////// calculator code below /////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+var odorCalculatorVisible = false;
+var calculatorMode = "distance";  // "rate" is the other calculator
+
+// actually no need to store this.  HTML DOM automatically store unless page reloaded
+//var rateInput4distCalc = 5.0;   		  // in ou/s     
+//var distInput4rateCalc = 1000;		  // in m
+
+$("#ShowCalculator").click( function() {
+	console.log("#ShowCalculator was clicked" );
+	if ( odorCalculatorVisible == false ) {
+	    odorCalculatorVisible = true;
+	    $("button#ShowCalculator").html("Hide Calculator");
+		calculateSeparationDistance();
+		$("#distanceCalc.calc_Css").show("slow");
+	} else {
+	    odorCalculatorVisible = false;
+	    $("#ShowCalculator").html("Show Calculator");
+		$("#distanceCalc.calc_Css").hide("slow");
+		$("#rateCalc.calc_Css").hide("slow");
+	}
+	console.log("odorCalculatorVisible is now: " + odorCalculatorVisible );
+});
+
+$("#ShowRateCalculatorButton").click( function() {
+	console.log("#ShowRateCalculator was clicked" );
+	$("#distanceCalc.calc_Css").hide("slow");
+	calculateRate();
+	$("#rateCalc.calc_Css").show("slow");
+});
+
+$("#ShowDistanceCalculatorButton").click( function() {
+	console.log("#ShowDistanceCalculator was clicked" );
+	$("#rateCalc.calc_Css").hide("slow");
+	calculateSeparationDistance();
+	$("#distanceCalc.calc_Css").show("slow");
+});
+
+$("#CalculateButton4distCalc").click( function() {
+		calculateSeparationDistance();
+});
+$("#CalculateButton4rateCalc").click( function() {
+		calculateRate();
+});
+
+function getCurrentSite() {
+	// retrieve site name, so that formula knows which set of weights to use, 
+	// also set text of calculator accordingly
+	currentSite = document.getElementById("siteSelectorUI").value;
+	return currentSite;
+};
+
+function calculateSeparationDistance() {
+	console.log("#CalculateButton4distCalc was triggered" );
+	var inputNum = document.getElementById('distanceCalculatorInput').value;
+	var lowMixing_spring  = inputNum * 10;
+	var highMixing_spring = inputNum * 20;
+	var lowMixing_summer  = inputNum * 30;
+	var highMixing_summer = inputNum * 40;
+	console.log("inputNum was:" + inputNum );
+
+	//document.getElementById('siteLocation').innerHTML = getCurrentSite();
+	$('#siteLocation4distCalc').text( getCurrentSite() );
+	document.getElementById('calc_result_lowMixing_spring').innerHTML = lowMixing_spring;
+	document.getElementById('calc_result_highMixing_spring').innerHTML = highMixing_spring;
+	document.getElementById('calc_result_lowMixing_summer').innerHTML = lowMixing_summer;
+	document.getElementById('calc_result_highMixing_summer').innerHTML = highMixing_summer;
+};
+
+function calculateRate() {
+	console.log("#CalculateRate4rateCalc was triggered" );
+	var rateCalculatorInput = document.getElementById('rateCalculatorInput').value;
+	var rate4spring  = rateCalculatorInput / 100;
+	var rate4summer  = rateCalculatorInput / 200;
+	//... ++
+	var rate4allSeasons  = rateCalculatorInput / 500;
+
+	//document.getElementById('siteLocation').innerHTML = getCurrentSite();
+	$('#siteLocation4rateCalc').text( getCurrentSite() );
+	document.getElementById('calc_result_distance2rate_spring').innerHTML = rate4spring;
+	document.getElementById('calc_result_distance2rate_allSeasons').innerHTML = rate4allSeasons;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////// mapbox code below ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 mapboxgl.accessToken =   'pk.eyJ1Ijoic241MCIsImEiOiJjam8weWl0dm0wNWVhM3dubmgyb3hwaTZsIn0.2Cvl-nnhZAoavESou_RqiQ'; // Sn  (post?) 2018-12-07   pk = public token
 var dbgTracer = "dbgTracerDeclared \t";
 var currentLoadedMapLayer  = "";
@@ -632,11 +908,11 @@ function buildLonLatHash() {
     lon['SsCalexico'] = -115.505188 ;	 lat['SsCalexico'] = 32.671926;
     lon['ScCorona'] = -117.604756 ;	 lat['ScCorona'] = 33.927683;
     lon['SfDublin'] = -121.915158 ;	 lat['SfDublin'] = 37.68713;
-    lon['McEidorado'] = -121.060204 ;	 lat['McEidorado'] = 38.637366;
+    lon['McEldorado'] = -121.060204 ;	 lat['McEldorado'] = 38.637366;
     lon['SfFairfield'] = -122.078372 ;	 lat['SfFairfield'] = 38.222534;
     lon['SjFresno'] = -119.893086 ;	 lat['SjFresno'] = 36.702497;
     lon['NcHealdsburg'] = -122.862719 ;	 lat['NcHealdsburg'] = 38.583622;
-    lon['ScLeua'] = -117.601852 ;	 lat['ScLeua'] = 34.028642;
+    lon['ScIeua'] = -117.601852 ;	 lat['ScIeua'] = 34.028642;
     lon['ScJoint'] = -118.28581 ;	 lat['ScJoint'] = 33.801326;
     lon['MdLancaster'] = -118.155984 ;	 lat['MdLancaster'] = 34.785119;
     lon['CcMonterey'] = -121.769894 ;	 lat['CcMonterey'] = 36.70564;
@@ -800,7 +1076,7 @@ map.on('load', function () {
         }
     });
     //map.style.sourceCaches['attribution-layer']._source.attribution = "Smelly. An app from the collaboration of ETA and Science IT, LBNL. © 2019 Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown";
-    map.style.sourceCaches['attribution-layer']._source.attribution =  '<A HREF="https://github.com/lbl-eta/smelly">Smelly</A>';
+    map.style.sourceCaches['attribution-layer']._source.attribution =  '<A HREF="https://github.com/lbnl-scienceit/smelly">Smelly</A>';
     // "Smelly";
 
 
@@ -813,6 +1089,8 @@ map.on('load', function () {
     poly_selector.addEventListener('change', function(e) {
         //var testTin = "test123";
         getInputFormSelection();
+		calculateSeparationDistance();  // update calculator siteLocation info 
+		calculateRate();  // update calculator siteLocation info 
     });
     var seasonSelector = document.getElementById("seasonSelectorUI");  
     seasonSelector.addEventListener('change', function(e) {
@@ -932,7 +1210,7 @@ map.addControl(new StylesControl([{
 //map.addControl(new mapboxgl.AttributionControl({
 map.addControl(new mapboxgl.AttributionControl({
         compact: true,  // set to false to add an EXTRA line with info below prefixed.  true add an (i) icon
-        customAttribution: '<A HREF="https://github.com/lbl-eta/smelly"> © Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown @ LBNL</A>'
+        customAttribution: '<A HREF="https://github.com/lbnl-scienceit/smelly"> © Tin Ho, Wei Zhou, Ling Jin, Tyler Huntington, Corinne Scown @ LBNL</A>'
 }));
 
 
